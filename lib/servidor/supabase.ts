@@ -41,16 +41,21 @@ export function clienteServidor(): SupabaseClient {
 export class ErrorConfiguracion extends Error {}
 
 /**
- * El proyecto no tiene autenticación. Los endpoints quedan abiertos solo en
- * desarrollo local; en producción se bloquean salvo que se habilite de forma
- * explícita (y entonces debe añadirse protección delante).
+ * Los endpoints quedan abiertos en desarrollo local. En producción solo se
+ * permiten si proxy.ts está pidiendo usuario y contraseña (ACCESO_USUARIO y
+ * ACCESO_CLAVE definidas) o si se habilitan de forma explícita porque hay otra
+ * protección delante.
  */
 export function accesoPermitido(): string | null {
+  const protegido = Boolean(
+    process.env.ACCESO_USUARIO && process.env.ACCESO_CLAVE
+  )
   if (
     process.env.NODE_ENV === "production" &&
+    !protegido &&
     process.env.ETL_PERMITIR_EN_PRODUCCION !== "true"
   ) {
-    return "Endpoint deshabilitado en producción: requiere autenticación antes de publicarse."
+    return "Endpoint deshabilitado en producción: define ACCESO_USUARIO y ACCESO_CLAVE para protegerlo con contraseña."
   }
   return null
 }

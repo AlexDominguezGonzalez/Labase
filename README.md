@@ -60,10 +60,11 @@ que usar `ORDER BY` (la pestaña «Datos en Supabase» siempre lo fija).
   cuerpo a 256 KB.
 - La tabla tiene RLS activado y **ninguna** política; además se revocan los
   permisos de `anon` y `authenticated`.
-- **El proyecto no tiene autenticación.** Los endpoints quedan abiertos solo en
-  desarrollo: con `NODE_ENV=production` responden 403, salvo que se defina
-  `ETL_PERMITIR_EN_PRODUCCION=true`, lo que solo debe hacerse tras añadir
-  protección (login, red privada…). **Antes de publicar, protege los endpoints.**
+- **Acceso con contraseña.** Si se definen `ACCESO_USUARIO` y `ACCESO_CLAVE`,
+  `proxy.ts` pide usuario y contraseña (HTTP Basic Auth) para toda la app.
+  Con `NODE_ENV=production` los endpoints responden 403 mientras no estén
+  definidas, salvo que se ponga `ETL_PERMITIR_EN_PRODUCCION=true` porque ya hay
+  otra protección delante (red privada, Vercel Authentication…).
 
 ## Pruebas
 
