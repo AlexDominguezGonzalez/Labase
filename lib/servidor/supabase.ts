@@ -7,11 +7,13 @@ export const TABLA = "mediciones_meteorologicas"
 /**
  * La URL del proyecto no es secreta, pero como todo el acceso se hace desde
  * el servidor aceptamos SUPABASE_URL y, por compatibilidad, la variante
- * NEXT_PUBLIC_SUPABASE_URL. La clave de servicio NUNCA debe llevar NEXT_PUBLIC.
+ * NEXT_PUBLIC_SUPABASE_URL. La clave secreta se acepta como
+ * SUPABASE_SERVICE_ROLE_KEY o SUPABASE_SECRET_KEY, y NUNCA debe llevar NEXT_PUBLIC.
  */
 function configuracion() {
   const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL
-  const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const clave =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY
   return { url, clave }
 }
 
