@@ -60,11 +60,11 @@ que usar `ORDER BY` (la pestaña «Datos en Supabase» siempre lo fija).
   cuerpo a 256 KB.
 - La tabla tiene RLS activado y **ninguna** política; además se revocan los
   permisos de `anon` y `authenticated`.
-- **Acceso con contraseña.** Si se definen `ACCESO_USUARIO` y `ACCESO_CLAVE`,
-  `proxy.ts` pide usuario y contraseña (HTTP Basic Auth) para toda la app.
-  Con `NODE_ENV=production` los endpoints responden 403 mientras no estén
-  definidas, salvo que se ponga `ETL_PERMITIR_EN_PRODUCCION=true` porque ya hay
-  otra protección delante (red privada, Vercel Authentication…).
+- **Acceso con contraseña (opcional).** Si se definen `ACCESO_USUARIO` y
+  `ACCESO_CLAVE`, `proxy.ts` pide usuario y contraseña (HTTP Basic Auth) para
+  toda la app. Sin ellas, cualquiera con la URL puede leer y escribir en la
+  tabla a través de los endpoints. `ETL_BLOQUEAR_EN_PRODUCCION=true` los
+  desactiva en producción.
 
 ## Pruebas
 
