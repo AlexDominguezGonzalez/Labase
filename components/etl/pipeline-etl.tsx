@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ArrowRightIcon, DatabaseIcon, InfoIcon } from "lucide-react"
+import { ArrowRightIcon, DatabaseIcon, InfoIcon, MapIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -43,6 +43,7 @@ import {
 } from "./inspeccion"
 import { PanelCarga, type EstadoCarga, type Verificacion } from "./panel-carga"
 import { PanelFiltros } from "./panel-filtros"
+import { PestanaMapa } from "./pestana-mapa"
 import { PestanaSupabase } from "./pestana-supabase"
 
 interface EstadoExtraccion {
@@ -54,8 +55,17 @@ interface EstadoExtraccion {
   duracionMs?: number
 }
 
+/** Referencia estable: un [] nuevo en cada render recrearía los marcadores. */
+const SIN_FILAS: FilaCarga[] = []
+
 type Pestana =
-  "json" | "transformados" | "validos" | "rechazados" | "carga" | "supabase"
+  | "json"
+  | "transformados"
+  | "validos"
+  | "rechazados"
+  | "carga"
+  | "supabase"
+  | "mapa"
 
 export function PipelineEtl() {
   // ---------- 1. Configuración ----------
@@ -562,6 +572,9 @@ export function PipelineEtl() {
               <TabsTrigger value="supabase">
                 <DatabaseIcon aria-hidden /> Datos en Supabase
               </TabsTrigger>
+              <TabsTrigger value="mapa">
+                <MapIcon aria-hidden /> Mapa
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -612,6 +625,9 @@ export function PipelineEtl() {
           </TabsContent>
           <TabsContent value="supabase">
             <PestanaSupabase pendientesLocales={aCargar.length} />
+          </TabsContent>
+          <TabsContent value="mapa">
+            <PestanaMapa filas={etl?.limpieza.validos ?? SIN_FILAS} />
           </TabsContent>
         </Tabs>
       </section>
