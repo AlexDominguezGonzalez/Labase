@@ -1,17 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { ArrowRightIcon, DatabaseIcon, InfoIcon, MapIcon } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type { Estado } from "@/components/etl/comun"
+import { fmtN } from "@/components/etl/comun"
+import type { EstadoCarga, Verificacion } from "@/components/etl/panel-carga"
 import { crearLotes, ejecutarLotes, huella, type Lote } from "@/lib/etl/carga"
 import { CIUDADES, ciudadPorId } from "@/lib/etl/ciudades"
 import {
@@ -34,17 +27,13 @@ import {
 import { filtrarYOrdenar, transformarYLimpiar } from "@/lib/etl/pipeline"
 import type { ExtraccionCiudad, FilaCarga } from "@/lib/etl/tipos"
 
-import { Contador, EstadoBadge, fmtMs, fmtN, type Estado } from "./comun"
-import { Configuracion } from "./configuracion"
-import {
-  PestanaJson,
-  PestanaRechazados,
-  PestanaTransformados,
-} from "./inspeccion"
-import { PanelCarga, type EstadoCarga, type Verificacion } from "./panel-carga"
-import { PanelFiltros } from "./panel-filtros"
-import { PestanaMapa } from "./pestana-mapa"
-import { PestanaSupabase } from "./pestana-supabase"
+export type Pestana =
+  | "json"
+  | "transformados"
+  | "validos"
+  | "rechazados"
+  | "carga"
+  | "supabase"
 
 interface EstadoExtraccion {
   inicio: string
@@ -55,19 +44,11 @@ interface EstadoExtraccion {
   duracionMs?: number
 }
 
-/** Referencia estable: un [] nuevo en cada render recrearía los marcadores. */
-const SIN_FILAS: FilaCarga[] = []
-
-type Pestana =
-  | "json"
-  | "transformados"
-  | "validos"
-  | "rechazados"
-  | "carga"
-  | "supabase"
-  | "mapa"
-
-export function PipelineEtl() {
+/**
+ * Todo el estado y las acciones del pipeline ETL, sin maquetación: la vista
+ * Map-First lo reparte entre el mapa y los paneles flotantes.
+ */
+export function usePipelineEtl() {
   // ---------- 1. Configuración ----------
   const [ciudadesSel, setCiudadesSel] = React.useState<string[]>(
     CIUDADES.map((c) => c.id)
@@ -416,230 +397,39 @@ export function PipelineEtl() {
     },
   ]
 
-  const [pestana, setPestana] = React.useState<Pestana>("json")
-  const refPestanas = React.useRef<HTMLDivElement>(null)
-  function inspeccionar(p: Pestana) {
-    setPestana(p)
-    refPestanas.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+  return {
+    ciudadesSel,
+    setCiudadesSel,
+    inicio,
+    fin,
+    setInicio,
+    setFin,
+    validacion,
+    extraccion,
+    etl,
+    ciudadesExtraidas,
+    filtros,
+    setFiltros,
+    orden,
+    setOrden,
+    seleccion,
+    setSeleccion,
+    errFiltros,
+    filtrado,
+    aCargar,
+    fueraDeFiltros,
+    filasVistaPrevia,
+    huellaVistaPrevia: huella(filasVistaPrevia),
+    carga,
+    subir,
+    reintentarFallidos,
+    extraer,
+    reintentarCiudad,
+    ciudadesEstado,
+    validos,
+    rechazados,
+    fases,
   }
-
-  return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <header className="flex flex-col gap-1">
-        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          Especialización en Big Data · Práctica 1
-        </p>
-        <h1 className="text-2xl font-semibold">
-          Pipeline ETL: Open-Meteo → Supabase
-        </h1>
-        <p className="max-w-3xl text-sm text-muted-foreground">
-          Extrae mediciones horarias reales, observa cómo cambian los datos en
-          cada fase y decide exactamente qué registros se cargan en la base de
-          datos.
-        </p>
-      </header>
-
-      {/* 1. CONFIGURACIÓN */}
-      <Configuracion
-        ciudadesSel={ciudadesSel}
-        setCiudadesSel={setCiudadesSel}
-        inicio={inicio}
-        fin={fin}
-        setInicio={setInicio}
-        setFin={setFin}
-        validacion={validacion}
-        enCurso={!!extraccion?.enCurso}
-        bloqueado={carga !== null && carga.estado !== "terminada"}
-        alExtraer={extraer}
-        ciudades={ciudadesEstado}
-        alReintentar={reintentarCiudad}
-        hayDatosPrevios={!!extraccion}
-      />
-
-      {/* 2. PIPELINE */}
-      <section
-        aria-labelledby="titulo-pipeline"
-        className="flex flex-col gap-3"
-      >
-        <h2 id="titulo-pipeline" className="text-lg font-semibold">
-          2. Pipeline
-        </h2>
-        <ol className="grid gap-3 md:grid-cols-5">
-          {fases.map((f, i) => (
-            <li key={f.nombre} className="relative flex">
-              <Card size="sm" className="w-full">
-                <CardHeader>
-                  <CardTitle className="flex flex-wrap items-center justify-between gap-2">
-                    <span>
-                      <span className="text-muted-foreground">{i + 1}.</span>{" "}
-                      {f.nombre}
-                    </span>
-                    <EstadoBadge estado={f.estado} />
-                  </CardTitle>
-                  <CardDescription>{f.explicacion}</CardDescription>
-                </CardHeader>
-                <CardContent className="mt-auto flex flex-col gap-2 text-xs">
-                  <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
-                    <dt className="text-muted-foreground">Entrada</dt>
-                    <dd className="tabular-nums">{f.entrada}</dd>
-                    <dt className="text-muted-foreground">Salida</dt>
-                    <dd className="tabular-nums">{f.salida}</dd>
-                    <dt className="text-muted-foreground">Duración</dt>
-                    <dd className="tabular-nums">{fmtMs(f.duracion)}</dd>
-                  </dl>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => inspeccionar(f.pestana)}
-                  >
-                    Inspeccionar resultado
-                  </Button>
-                </CardContent>
-              </Card>
-              {i < fases.length - 1 && (
-                <ArrowRightIcon
-                  aria-hidden
-                  className="absolute top-1/2 -right-3 z-10 hidden size-4 -translate-y-1/2 text-muted-foreground md:block"
-                />
-              )}
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {/* CONTADORES */}
-      <section
-        aria-label="Contadores"
-        className="grid grid-cols-2 gap-2 sm:grid-cols-5"
-      >
-        <Contador
-          titulo="Total extraído"
-          valor={etl?.registros.length ?? 0}
-          detalle="filas tras transformar"
-        />
-        <Contador
-          titulo="Válidos"
-          valor={validos}
-          detalle="superan la limpieza"
-        />
-        <Contador
-          titulo="Rechazados"
-          valor={rechazados}
-          detalle="por calidad o duplicado"
-        />
-        <Contador
-          titulo="Coinciden con los filtros"
-          valor={filtrado.ordenados.length}
-          detalle="de los válidos"
-        />
-        <Contador
-          titulo="Seleccionados para cargar"
-          valor={aCargar.length}
-          detalle={
-            fueraDeFiltros
-              ? `+${fmtN(fueraDeFiltros)} seleccionados fuera de filtros`
-              : "cumplen los filtros"
-          }
-          destacado
-        />
-      </section>
-
-      {/* 3. INSPECCIÓN */}
-      <section
-        ref={refPestanas}
-        aria-labelledby="titulo-inspeccion"
-        className="flex scroll-mt-4 flex-col gap-3"
-      >
-        <h2 id="titulo-inspeccion" className="text-lg font-semibold">
-          3. Inspección de datos
-        </h2>
-        <Tabs value={pestana} onValueChange={(v) => setPestana(v as Pestana)}>
-          <div className="overflow-x-auto pb-1">
-            <TabsList>
-              <TabsTrigger value="json">JSON original</TabsTrigger>
-              <TabsTrigger value="transformados">
-                Transformados ({fmtN(etl?.registros.length ?? 0)})
-              </TabsTrigger>
-              <TabsTrigger value="validos">
-                Válidos y selección ({fmtN(validos)})
-              </TabsTrigger>
-              <TabsTrigger value="rechazados">
-                Rechazados ({fmtN(rechazados)})
-              </TabsTrigger>
-              <TabsTrigger value="carga">
-                Vista previa de la carga ({fmtN(aCargar.length)})
-              </TabsTrigger>
-              <TabsTrigger value="supabase">
-                <DatabaseIcon aria-hidden /> Datos en Supabase
-              </TabsTrigger>
-              <TabsTrigger value="mapa">
-                <MapIcon aria-hidden /> Mapa
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="json">
-            <PestanaJson
-              ciudades={ciudadesEstado}
-              alReintentar={reintentarCiudad}
-            />
-          </TabsContent>
-          <TabsContent value="transformados">
-            <PestanaTransformados
-              registros={etl?.registros ?? []}
-              avisos={etl?.avisos ?? []}
-            />
-          </TabsContent>
-          <TabsContent value="validos">
-            <PanelFiltros
-              ciudadesDisponibles={ciudadesExtraidas}
-              filtros={filtros}
-              setFiltros={setFiltros}
-              errores={errFiltros}
-              orden={orden}
-              setOrden={setOrden}
-              ordenados={filtrado.ordenados}
-              totalValidos={validos}
-              seleccion={seleccion}
-              setSeleccion={setSeleccion}
-              fueraDeFiltros={fueraDeFiltros}
-              aCargar={aCargar.length}
-            />
-          </TabsContent>
-          <TabsContent value="rechazados">
-            <PestanaRechazados
-              rechazados={etl?.limpieza.rechazados ?? []}
-              duplicados={etl?.limpieza.duplicadosEliminados ?? 0}
-            />
-          </TabsContent>
-          <TabsContent value="carga">
-            <PanelCarga
-              filas={filasVistaPrevia}
-              huellaVistaPrevia={huella(filasVistaPrevia)}
-              orden={orden}
-              fueraDeFiltros={fueraDeFiltros}
-              carga={carga}
-              alSubir={subir}
-              alReintentar={reintentarFallidos}
-            />
-          </TabsContent>
-          <TabsContent value="supabase">
-            <PestanaSupabase pendientesLocales={aCargar.length} />
-          </TabsContent>
-          <TabsContent value="mapa">
-            <PestanaMapa filas={etl?.limpieza.validos ?? SIN_FILAS} />
-          </TabsContent>
-        </Tabs>
-      </section>
-
-      <footer className="flex items-start gap-2 border-t pt-4 text-xs text-muted-foreground">
-        <InfoIcon aria-hidden className="mt-0.5 size-3.5 shrink-0" />
-        <p>
-          Datos: Open-Meteo Historical Weather API (CC BY 4.0). La escritura en
-          Supabase se ejecuta solo en el servidor. Sin autenticación: uso
-          exclusivo en desarrollo local.
-        </p>
-      </footer>
-    </div>
-  )
 }
+
+export type PipelineEtl = ReturnType<typeof usePipelineEtl>

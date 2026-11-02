@@ -37,26 +37,22 @@ const ESTADOS: Record<
   en_curso: {
     texto: "En curso",
     icono: Loader2Icon,
-    clase:
-      "border-sky-600/40 bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200",
+    clase: "border-acento/40 bg-acento/10 text-acento",
   },
   completada: {
     texto: "Completada",
     icono: CheckCircle2Icon,
-    clase:
-      "border-emerald-600/40 bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
+    clase: "border-border bg-foreground/5 text-foreground",
   },
   completado: {
     texto: "Completado",
     icono: CheckCircle2Icon,
-    clase:
-      "border-emerald-600/40 bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
+    clase: "border-border bg-foreground/5 text-foreground",
   },
   error: {
     texto: "Con errores",
     icono: AlertTriangleIcon,
-    clase:
-      "border-red-600/40 bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-200",
+    clase: "border-destructive/40 bg-destructive/10 text-destructive",
   },
 }
 

@@ -142,7 +142,7 @@ export function PanelFiltros({
         válidos antes de paginar; la paginación solo afecta a lo que ves.
       </p>
 
-      <div className="grid gap-4 rounded-lg border p-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 rounded-lg border p-3 @xl:grid-cols-2">
         <fieldset className="flex flex-col gap-1">
           <legend className="text-xs font-medium">Ciudades</legend>
           <div className="flex flex-wrap gap-x-3 gap-y-1">
@@ -207,7 +207,7 @@ export function PanelFiltros({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-end gap-2 md:col-span-2 xl:col-span-4">
+        <div className="flex flex-wrap items-end gap-2 @xl:col-span-2">
           <div className="flex flex-col gap-1">
             <Label htmlFor="orden-campo" className="text-xs">
               Ordenar por

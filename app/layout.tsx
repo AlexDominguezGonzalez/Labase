@@ -13,7 +13,7 @@ const fontMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Pipeline ETL · Open-Meteo → Supabase",
+  title: "BaseBig · Clima en el mapa",
   description:
     "Práctica de Big Data: extracción, transformación, limpieza, filtrado y carga.",
 }

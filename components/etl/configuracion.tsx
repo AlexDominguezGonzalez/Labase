@@ -51,18 +51,12 @@ export function Configuracion({
   const deshabilitado = validacion.errores.length > 0 || enCurso || bloqueado
 
   return (
-    <section
-      aria-labelledby="titulo-config"
-      className="grid gap-4 rounded-xl border bg-card p-4 lg:grid-cols-[1fr_1fr]"
-    >
+    <section aria-label="Configuración de extracción" className="flex flex-col gap-5">
       <div className="flex flex-col gap-4">
-        <h2 id="titulo-config" className="text-lg font-semibold">
-          1. Configuración de extracción
-        </h2>
 
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1 text-sm font-medium">Ciudades</legend>
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
+          <div className="flex flex-col gap-2">
             {CIUDADES.map((c) => {
               const id = `ciudad-${c.id}`
               return (
@@ -111,7 +105,7 @@ export function Configuracion({
           </div>
         </fieldset>
 
-        <div className="grid grid-cols-2 gap-3 sm:max-w-md">
+        <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
             <Label htmlFor="fecha-inicio">Fecha inicial (UTC)</Label>
             <Input

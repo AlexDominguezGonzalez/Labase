@@ -97,7 +97,7 @@ export function PanelCarga({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 rounded-lg border p-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-3 rounded-lg border p-3 @2xl:flex-row @2xl:items-center @2xl:justify-between">
         <div className="flex flex-col gap-1 text-sm">
           <p>
             Este es <strong>exactamente</strong> el conjunto que se enviará:{" "}
